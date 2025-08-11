@@ -78,14 +78,14 @@ export default function PropertyPagination({
             <PaginationLink
               onClick={() => currentPage > 1 && onPageChange(currentPage - 1)}
               className={cn(
-                "font-montserrat cursor-pointer text-foreground border border-border",
+                "font-montserrat cursor-pointer bg-gray-100 text-gray-900 border-gray-300",
                 "w-8 h-8 md:w-auto md:h-auto",
                 "flex items-center justify-center",
                 "md:gap-1 md:pl-2.5 md:pr-3 md:px-4",
                 "text-xs md:text-sm",
                 currentPage <= 1
                   ? "pointer-events-none opacity-50"
-                  : "hover:bg-accent hover:text-accent-foreground"
+                  : "hover:bg-gray-200"
               )}
             >
               <ChevronLeft className="h-4 w-4" />
@@ -106,7 +106,7 @@ export default function PropertyPagination({
                     "font-montserrat cursor-pointer text-xs md:text-sm w-8 h-8 md:w-10 md:h-10",
                     currentPage === pageNum
                       ? "bg-primary text-primary-foreground border-transparent hover:bg-primary/90"
-                      : "text-foreground border border-border hover:bg-accent hover:text-accent-foreground"
+                      : "bg-gray-100 text-gray-900 border-gray-300 hover:bg-gray-200"
                   )}
                 >
                   {pageNum}
@@ -120,14 +120,14 @@ export default function PropertyPagination({
             <PaginationLink
               onClick={() => currentPage < totalPages && onPageChange(currentPage + 1)}
               className={cn(
-                "font-montserrat cursor-pointer text-foreground border border-border",
+                "font-montserrat cursor-pointer bg-gray-100 text-gray-900 border-gray-300",
                 "w-8 h-8 md:w-auto md:h-auto",
                 "flex items-center justify-center",
                 "md:gap-1 md:pr-2.5 md:pl-3 md:px-4",
                 "text-xs md:text-sm",
                 currentPage >= totalPages
                   ? "pointer-events-none opacity-50"
-                  : "hover:bg-accent hover:text-accent-foreground"
+                  : "hover:bg-gray-200"
               )}
             >
               <span className="hidden md:inline">Próxima</span>
