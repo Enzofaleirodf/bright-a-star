@@ -73,11 +73,11 @@ export default function ControlsBar({
             )}
           </div>
 
-          <div className="flex-1 max-w-[800px] relative">
+          <div className="flex-1 min-w-0 relative">
             <Search className="absolute left-6 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#00000099]" />
             <Input
               placeholder="Buscar cidade ou estado"
-              className="h-12 pl-14 border-[#00000014] bg-[#04040505] text-[#040405CC] placeholder:text-[#04040580] font-montserrat"
+              className="w-full h-12 pl-14 border-[#00000014] bg-[#04040505] text-[#040405CC] placeholder:text-[#04040580] font-montserrat"
             />
           </div>
 
@@ -114,9 +114,9 @@ export default function ControlsBar({
           <div className="flex-1 relative">
             <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#00000099]" />
             <Input
-            placeholder="Buscar cidade ou estado"
-            className="h-11 md:h-12 pl-12 border-[#00000014] bg-[#04040505] text-[#040405CC] placeholder:text-[#04040580] font-montserrat"
-          />
+              placeholder="Buscar cidade ou estado"
+              className="w-full h-11 md:h-12 pl-12 border-[#00000014] bg-[#04040505] text-[#040405CC] placeholder:text-[#04040580] font-montserrat"
+            />
           </div>
         </div>
 

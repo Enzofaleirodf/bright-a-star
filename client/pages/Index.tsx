@@ -991,7 +991,7 @@ export default function Index() {
   }, []);
 
   const [activeTab, setActiveTab] = useState("Imóveis");
-  const [viewMode, setViewMode] = useState(() => {
+  const [viewMode, setViewMode] = useState<"grid" | "list">(() => {
     if (typeof window !== 'undefined') {
       return window.innerWidth < 768 ? "list" : "grid";
     }
