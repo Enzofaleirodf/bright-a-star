@@ -1139,7 +1139,7 @@ export default function Index() {
   // Dados exibidos na página atual
   const totalItems = activeTab === "Imóveis" ? propertyTotal : vehicleTotal;
   const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
-  const currentData = activeTab === "Imóveis" ? (propertyData.length ? propertyData : properties) : (vehicleData.length ? vehicleData : vehicles);
+  const currentData = activeTab === "Imóveis" ? propertyData : vehicleData;
   const displayedItems = currentData.slice(0, Math.min(currentData.length, itemsPerPage));
 
   return (
