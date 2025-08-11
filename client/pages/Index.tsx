@@ -9,6 +9,8 @@ import FloatingFilterButton from "../components/ui/FloatingFilterButton";
 import FilterModal from "../components/ui/FilterModal";
 import PropertyPagination from "../components/ui/PropertyPagination";
 import MobileBottomNavigation from "../components/ui/MobileBottomNavigation";
+import { toast } from "../components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface PropertyCardData {
   id: string;
@@ -40,6 +42,36 @@ interface VehicleCardData {
   isNew?: boolean;
   isVerified?: boolean;
 }
+
+// Helpers to format data from Supabase
+const formatBRL = (v: unknown): string => {
+  const n = typeof v === "string" ? parseFloat(v) : typeof v === "number" ? v : NaN;
+  if (!isFinite(n)) return "R$ -";
+  return n.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
+};
+const computeDiscount = (appraised: unknown, bid: unknown): string | undefined => {
+  const a = typeof appraised === "string" ? parseFloat(appraised) : typeof appraised === "number" ? appraised : NaN;
+  const b = typeof bid === "string" ? parseFloat(bid) : typeof bid === "number" ? bid : NaN;
+  if (isFinite(a) && isFinite(b) && b < a && a > 0) {
+    const pct = Math.round((1 - b / a) * 100);
+    if (pct > 0) return `-${pct}%`;
+  }
+  return undefined;
+};
+const formatLocation = (city?: string | null, state?: string | null) => {
+  const c = city?.trim() || "";
+  const s = state?.trim() || "";
+  return c && s ? `${c}, ${s}` : c || s || "";
+};
+const formatDateLabel = (endDate?: string | null) => {
+  if (!endDate) return "";
+  const d = new Date(endDate);
+  if (isNaN(d.getTime())) return endDate as string;
+  const dd = String(d.getDate()).padStart(2, "0");
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const hh = String(d.getHours()).padStart(2, "0");
+  return `${dd}/${mm} ${hh}h`;
+};
 
 const properties: PropertyCardData[] = [
   {
@@ -1017,14 +1049,75 @@ export default function Index() {
     setActiveFiltersCount(count);
   };
 
+  // Supabase-loaded data
+  const [propertyData, setPropertyData] = useState<PropertyCardData[]>([]);
+  const [vehicleData, setVehicleData] = useState<VehicleCardData[]>([]);
+
   const itemsPerPage = 33;
   const totalItems = 42000; // From the stats - "Encontramos 42.000 leilões"
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [propRes, vehRes] = await Promise.all([
+          supabase
+            .from("lots_property")
+            .select("_id, property_category, property_type_std1, useful_area_m2, state, city, appraised_value, initial_bid_value, stage, end_date, origin")
+            .limit(itemsPerPage),
+          supabase
+            .from("lots_vehicle")
+            .select("_id, vehicle_category, vehicle_type_std, brand, model, year, state, city, appraised_value, initial_bid_value, stage, end_date, origin")
+            .limit(itemsPerPage),
+        ]);
+
+        if (propRes.error) throw propRes.error;
+        if (vehRes.error) throw vehRes.error;
+
+        const mappedProperties: PropertyCardData[] = (propRes.data || []).map((row: any) => ({
+          id: String(row._id ?? crypto.randomUUID()),
+          type: row.property_type_std1 || row.property_category || "Imóvel",
+          area: row.useful_area_m2 ? `${row.useful_area_m2}m²` : undefined,
+          location: formatLocation(row.city, row.state),
+          evaluation: formatBRL(row.appraised_value),
+          currentBid: formatBRL(row.initial_bid_value),
+          discount: computeDiscount(row.appraised_value, row.initial_bid_value),
+          auction: row.stage || "",
+          date: formatDateLabel(row.end_date),
+          auctioneer: row.origin || "Leilão",
+          isVerified: true,
+        }));
+
+        const mappedVehicles: VehicleCardData[] = (vehRes.data || []).map((row: any) => ({
+          id: String(row._id ?? crypto.randomUUID()),
+          marca: row.brand || "Veículo",
+          modelo: row.model || "",
+          year: row.year || undefined,
+          location: formatLocation(row.city, row.state),
+          evaluation: formatBRL(row.appraised_value),
+          currentBid: formatBRL(row.initial_bid_value),
+          discount: computeDiscount(row.appraised_value, row.initial_bid_value),
+          auction: row.stage || "",
+          date: formatDateLabel(row.end_date),
+          auctioneer: row.origin || "Leilão",
+          isVerified: true,
+        }));
+
+        setPropertyData(mappedProperties);
+        setVehicleData(mappedVehicles);
+      } catch (e: any) {
+        toast({ title: "Erro ao carregar dados", description: e.message || "Falha ao consultar o Supabase." });
+      }
+    };
+
+    fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [itemsPerPage]);
+
   // Calculate items to show based on current page and active tab
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentData = activeTab === "Imóveis" ? properties : vehicles;
+  const currentData = activeTab === "Imóveis" ? (propertyData.length ? propertyData : properties) : (vehicleData.length ? vehicleData : vehicles);
   const displayedItems = currentData.slice(0, Math.min(currentData.length, itemsPerPage));
 
   return (
@@ -1034,8 +1127,6 @@ export default function Index() {
         activeTab={activeTab}
         onTabChange={setActiveTab}
       />
-
-
       <div className="max-w-screen-2xl mx-auto px-4 md:px-8 lg:px-8 xl:px-16">
         <ControlsBar
           viewMode={viewMode}
