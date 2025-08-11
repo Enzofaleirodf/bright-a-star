@@ -20,7 +20,7 @@ export default function PropertyPagination({
   currentPage,
   totalPages,
   onPageChange,
-  itemsPerPage = 33,
+  itemsPerPage = 30,
   totalItems,
 }: PropertyPaginationProps) {
   const generatePageNumbers = () => {
@@ -78,14 +78,14 @@ export default function PropertyPagination({
             <PaginationLink
               onClick={() => currentPage > 1 && onPageChange(currentPage - 1)}
               className={cn(
-                "font-montserrat cursor-pointer",
+                "font-montserrat cursor-pointer text-foreground",
                 "w-8 h-8 md:w-auto md:h-auto",
                 "flex items-center justify-center",
                 "md:gap-1 md:pl-2.5 md:pr-3 md:px-4",
                 "text-xs md:text-sm",
                 currentPage <= 1
                   ? "pointer-events-none opacity-50"
-                  : "hover:bg-[#0404050A]"
+                  : "hover:bg-accent hover:text-accent-foreground"
               )}
             >
               <ChevronLeft className="h-4 w-4" />
@@ -105,8 +105,8 @@ export default function PropertyPagination({
                   className={cn(
                     "font-montserrat cursor-pointer text-xs md:text-sm w-8 h-8 md:w-10 md:h-10",
                     currentPage === pageNum
-                      ? "bg-[#FEDA03] text-[#040405] border-[#FEDA03] hover:bg-[#E6C603]"
-                      : "hover:bg-[#0404050A]"
+                      ? "bg-primary text-primary-foreground border-transparent hover:bg-primary/90"
+                      : "text-foreground hover:bg-accent hover:text-accent-foreground"
                   )}
                 >
                   {pageNum}
@@ -120,14 +120,14 @@ export default function PropertyPagination({
             <PaginationLink
               onClick={() => currentPage < totalPages && onPageChange(currentPage + 1)}
               className={cn(
-                "font-montserrat cursor-pointer",
+                "font-montserrat cursor-pointer text-foreground",
                 "w-8 h-8 md:w-auto md:h-auto",
                 "flex items-center justify-center",
                 "md:gap-1 md:pr-2.5 md:pl-3 md:px-4",
                 "text-xs md:text-sm",
                 currentPage >= totalPages
                   ? "pointer-events-none opacity-50"
-                  : "hover:bg-[#0404050A]"
+                  : "hover:bg-accent hover:text-accent-foreground"
               )}
             >
               <span className="hidden md:inline">Próxima</span>
