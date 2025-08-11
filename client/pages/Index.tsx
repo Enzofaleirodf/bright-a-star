@@ -1054,69 +1054,91 @@ export default function Index() {
   const [vehicleData, setVehicleData] = useState<VehicleCardData[]>([]);
 
   const itemsPerPage = 33;
-  const totalItems = 42000; // From the stats - "Encontramos 42.000 leilões"
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const [propertyTotal, setPropertyTotal] = useState(0);
+  const [vehicleTotal, setVehicleTotal] = useState(0);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [propRes, vehRes] = await Promise.all([
-          supabase
-            .from("lots_property")
-            .select("_id, property_category, property_type_std1, useful_area_m2, state, city, appraised_value, initial_bid_value, stage, end_date, origin")
-            .limit(itemsPerPage),
-          supabase
-            .from("lots_vehicle")
-            .select("_id, vehicle_category, vehicle_type_std, brand, model, year, state, city, appraised_value, initial_bid_value, stage, end_date, origin")
-            .limit(itemsPerPage),
-        ]);
+        const from = (currentPage - 1) * itemsPerPage;
+        const to = from + itemsPerPage - 1;
 
-        if (propRes.error) throw propRes.error;
-        if (vehRes.error) throw vehRes.error;
+        if (activeTab === "Imóveis") {
+          const [countRes, dataRes] = await Promise.all([
+            supabase.from("lots_property").select("*", { count: "exact", head: true }),
+            supabase
+              .from("lots_property")
+              .select("_id, property_category, property_type_std1, useful_area_m2, state, city, appraised_value, initial_bid_value, stage, end_date, origin")
+              .range(from, to),
+          ]);
 
-        const mappedProperties: PropertyCardData[] = (propRes.data || []).map((row: any) => ({
-          id: String(row._id ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`),
-          type: row.property_type_std1 || row.property_category || "Imóvel",
-          area: row.useful_area_m2 ? `${row.useful_area_m2}m²` : undefined,
-          location: formatLocation(row.city, row.state),
-          evaluation: formatBRL(row.appraised_value),
-          currentBid: formatBRL(row.initial_bid_value),
-          discount: computeDiscount(row.appraised_value, row.initial_bid_value),
-          auction: row.stage || "",
-          date: formatDateLabel(row.end_date),
-          auctioneer: row.origin || "Leilão",
-          isVerified: true,
-        }));
+          if (countRes.error) throw countRes.error;
+          if (dataRes.error) throw dataRes.error;
 
-        const mappedVehicles: VehicleCardData[] = (vehRes.data || []).map((row: any) => ({
-          id: String(row._id ?? crypto.randomUUID()),
-          marca: row.brand || "Veículo",
-          modelo: row.model || "",
-          year: row.year || undefined,
-          location: formatLocation(row.city, row.state),
-          evaluation: formatBRL(row.appraised_value),
-          currentBid: formatBRL(row.initial_bid_value),
-          discount: computeDiscount(row.appraised_value, row.initial_bid_value),
-          auction: row.stage || "",
-          date: formatDateLabel(row.end_date),
-          auctioneer: row.origin || "Leilão",
-          isVerified: true,
-        }));
+          setPropertyTotal(countRes.count || 0);
 
-        setPropertyData(mappedProperties);
-        setVehicleData(mappedVehicles);
+          const mappedProperties: PropertyCardData[] = (dataRes.data || []).map((row: any) => ({
+            id: String(row._id ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`),
+            type: row.property_type_std1 || row.property_category || "Imóvel",
+            area: row.useful_area_m2 ? `${row.useful_area_m2}m²` : undefined,
+            location: formatLocation(row.city, row.state),
+            evaluation: formatBRL(row.appraised_value),
+            currentBid: formatBRL(row.initial_bid_value),
+            discount: computeDiscount(row.appraised_value, row.initial_bid_value),
+            auction: row.stage || "",
+            date: formatDateLabel(row.end_date),
+            auctioneer: row.origin || "Leilão",
+            isVerified: true,
+          }));
+
+          setPropertyData(mappedProperties);
+        } else {
+          const [countRes, dataRes] = await Promise.all([
+            supabase.from("lots_vehicle").select("*", { count: "exact", head: true }),
+            supabase
+              .from("lots_vehicle")
+              .select("_id, vehicle_category, vehicle_type_std, brand, model, year, state, city, appraised_value, initial_bid_value, stage, end_date, origin")
+              .range(from, to),
+          ]);
+
+          if (countRes.error) throw countRes.error;
+          if (dataRes.error) throw dataRes.error;
+
+          setVehicleTotal(countRes.count || 0);
+
+          const mappedVehicles: VehicleCardData[] = (dataRes.data || []).map((row: any) => ({
+            id: String(row._id ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`),
+            marca: row.brand || "Veículo",
+            modelo: row.model || "",
+            year: row.year || undefined,
+            location: formatLocation(row.city, row.state),
+            evaluation: formatBRL(row.appraised_value),
+            currentBid: formatBRL(row.initial_bid_value),
+            discount: computeDiscount(row.appraised_value, row.initial_bid_value),
+            auction: row.stage || "",
+            date: formatDateLabel(row.end_date),
+            auctioneer: row.origin || "Leilão",
+            isVerified: true,
+          }));
+
+          setVehicleData(mappedVehicles);
+        }
       } catch (e: any) {
         toast({ title: "Erro ao carregar dados", description: e.message || "Falha ao consultar o Supabase." });
       }
     };
 
     fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [itemsPerPage]);
+  }, [activeTab, currentPage, itemsPerPage]);
 
-  // Calculate items to show based on current page and active tab
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
+  // Resetar para a página 1 ao trocar de aba
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeTab]);
+
+  // Dados exibidos na página atual
+  const totalItems = activeTab === "Imóveis" ? propertyTotal : vehicleTotal;
+  const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
   const currentData = activeTab === "Imóveis" ? (propertyData.length ? propertyData : properties) : (vehicleData.length ? vehicleData : vehicles);
   const displayedItems = currentData.slice(0, Math.min(currentData.length, itemsPerPage));
 
