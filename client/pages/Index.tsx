@@ -1075,7 +1075,7 @@ export default function Index() {
         if (vehRes.error) throw vehRes.error;
 
         const mappedProperties: PropertyCardData[] = (propRes.data || []).map((row: any) => ({
-          id: String(row._id ?? crypto.randomUUID()),
+          id: String(row._id ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`),
           type: row.property_type_std1 || row.property_category || "Imóvel",
           area: row.useful_area_m2 ? `${row.useful_area_m2}m²` : undefined,
           location: formatLocation(row.city, row.state),
