@@ -1053,7 +1053,7 @@ export default function Index() {
   const [propertyData, setPropertyData] = useState<PropertyCardData[]>([]);
   const [vehicleData, setVehicleData] = useState<VehicleCardData[]>([]);
 
-  const itemsPerPage = 33;
+  const itemsPerPage = 30;
   const [propertyTotal, setPropertyTotal] = useState(0);
   const [vehicleTotal, setVehicleTotal] = useState(0);
 
@@ -1065,10 +1065,16 @@ export default function Index() {
 
         if (activeTab === "Imóveis") {
           const [countRes, dataRes] = await Promise.all([
-            supabase.from("lots_property").select("*", { count: "exact", head: true }),
             supabase
               .from("lots_property")
-              .select("_id, property_category, property_type_std1, useful_area_m2, state, city, appraised_value, initial_bid_value, stage, end_date, origin")
+              .select("*", { count: "exact" })
+              .limit(0),
+            supabase
+              .from("lots_property")
+              .select(
+                "_id, property_category, property_type_std1, useful_area_m2, state, city, appraised_value, initial_bid_value, stage, end_date, origin"
+              )
+              .order("_id", { ascending: true })
               .range(from, to),
           ]);
 
@@ -1094,10 +1100,16 @@ export default function Index() {
           setPropertyData(mappedProperties);
         } else {
           const [countRes, dataRes] = await Promise.all([
-            supabase.from("lots_vehicle").select("*", { count: "exact", head: true }),
             supabase
               .from("lots_vehicle")
-              .select("_id, vehicle_category, vehicle_type_std, brand, model, year, state, city, appraised_value, initial_bid_value, stage, end_date, origin")
+              .select("*", { count: "exact" })
+              .limit(0),
+            supabase
+              .from("lots_vehicle")
+              .select(
+                "_id, vehicle_category, vehicle_type_std, brand, model, year, state, city, appraised_value, initial_bid_value, stage, end_date, origin"
+              )
+              .order("_id", { ascending: true })
               .range(from, to),
           ]);
 
