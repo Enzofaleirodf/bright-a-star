@@ -36,7 +36,7 @@ export default class ErrorBoundary extends React.Component<React.PropsWithChildr
             >
               Recarregar
             </button>
-            {process.env.NODE_ENV === "development" && this.state.error && (
+            {import.meta.env?.DEV && this.state.error && (
               <pre className="text-left whitespace-pre-wrap text-xs opacity-70 overflow-auto max-h-64">
                 {String(this.state.error?.message || this.state.error)}
               </pre>
